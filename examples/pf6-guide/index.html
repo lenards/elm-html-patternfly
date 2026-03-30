@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PatternFly 6 — elm/html Component Guide</title>
+  <link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@6/patternfly.css">
+  <style>
+    .guide-section {
+      margin-bottom: var(--pf-t--global--spacer--2xl, 2rem);
+      padding-bottom: var(--pf-t--global--spacer--xl, 1.5rem);
+      border-bottom: 1px solid var(--pf-t--global--border--color--default, #d2d2d2);
+    }
+    .guide-section:last-child {
+      border-bottom: none;
+    }
+    .guide-section__title {
+      font-size: var(--pf-t--global--font--size--xl, 1.25rem);
+      font-weight: 700;
+      margin-bottom: var(--pf-t--global--spacer--md, 1rem);
+      color: var(--pf-t--global--text--color--regular, #151515);
+    }
+    .guide-section__description {
+      font-size: var(--pf-t--global--font--size--md, 0.875rem);
+      color: var(--pf-t--global--text--color--subtle, #6a6e73);
+      margin-bottom: var(--pf-t--global--spacer--md, 1rem);
+    }
+    .guide-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--pf-t--global--spacer--md, 1rem);
+      margin-bottom: var(--pf-t--global--spacer--sm, 0.5rem);
+    }
+    .guide-row--vertical {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .guide-label {
+      font-size: var(--pf-t--global--font--size--sm, 0.75rem);
+      color: var(--pf-t--global--text--color--subtle, #6a6e73);
+      margin-bottom: var(--pf-t--global--spacer--xs, 0.25rem);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="main.js"></script>
+  <script>
+    var app = Elm.Main.init({ node: document.getElementById('app') });
+  </script>
+</body>
+</html>
