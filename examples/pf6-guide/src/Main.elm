@@ -39,6 +39,9 @@ import PF6.Switch as Switch
 import PF6.TextArea as TextArea
 import PF6.TextInput as TextInput
 import PF6.Title as Title
+import PF6.Masthead as Masthead
+import PF6.Navigation as Navigation
+import PF6.Page as Page
 
 
 main : Program () Model Msg
@@ -69,6 +72,8 @@ type alias Model =
     , switchChecked : Bool
     , searchValue : String
     , numberValue : Int
+    , sidebarExpanded : Bool
+    , navExpandedSection : Bool
     }
 
 
@@ -87,6 +92,8 @@ init =
     , switchChecked = False
     , searchValue = ""
     , numberValue = 1
+    , sidebarExpanded = True
+    , navExpandedSection = False
     }
 
 
@@ -109,6 +116,8 @@ type Msg
     | SwitchToggled Bool
     | SearchChanged String
     | NumberChanged Int
+    | ToggleSidebar
+    | ToggleNavSection
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -156,6 +165,12 @@ update msg model =
         NumberChanged val ->
             ( { model | numberValue = val }, Cmd.none )
 
+        ToggleSidebar ->
+            ( { model | sidebarExpanded = not model.sidebarExpanded }, Cmd.none )
+
+        ToggleNavSection ->
+            ( { model | navExpandedSection = not model.navExpandedSection }, Cmd.none )
+
 
 
 -- VIEW
@@ -180,7 +195,7 @@ view model =
                     [ Attr.style "color" "var(--pf-t--global--text--color--subtle)"
                     , Attr.style "margin-bottom" "2rem"
                     ]
-                    [ text "PatternFly 6 components built with elm/html. 37 components — Batch 1, 2 & 3." ]
+                    [ text "PatternFly 6 components built with elm/html. 40 components — Batch 1, 2, 3 & 4." ]
                 , viewActionList
                 , viewAlert model
                 , viewAvatar
@@ -205,7 +220,10 @@ view model =
                 , viewLabel model
                 , viewLevel
                 , viewList
+                , viewMasthead model
+                , viewNavigation model
                 , viewNumberInput model
+                , viewPage model
                 , viewProgress
                 , viewRadio model
                 , viewSearchInput model
@@ -1484,4 +1502,128 @@ viewNumberInput model =
             }
             |> NumberInput.withDisabled
             |> NumberInput.toMarkup
+        ]
+
+
+
+-- MASTHEAD
+
+
+viewMasthead : Model -> Html Msg
+viewMasthead model =
+    section "Masthead"
+        "Masthead provides the top horizontal bar with brand and toolbar areas."
+        [ label "With toggle, brand, and toolbar"
+        , Masthead.masthead
+            |> Masthead.withToggle ToggleSidebar
+            |> Masthead.withBrand
+                (span
+                    [ Attr.style "font-weight" "700"
+                    , Attr.style "padding" "0 1rem"
+                    ]
+                    [ text "My App" ]
+                )
+            |> Masthead.withToolbar
+                (span [ Attr.style "padding" "0 1rem" ] [ text "User ▾" ])
+            |> Masthead.toMarkup
+        , label "Brand only"
+        , Masthead.masthead
+            |> Masthead.withBrand
+                (span [ Attr.style "padding" "0 1rem", Attr.style "font-weight" "700" ]
+                    [ text "Minimal App" ]
+                )
+            |> Masthead.toMarkup
+        ]
+
+
+
+-- NAVIGATION
+
+
+viewNavigation : Model -> Html Msg
+viewNavigation model =
+    section "Navigation"
+        "Navigation provides a sidebar menu for moving between pages of an application."
+        [ label "Simple links"
+        , Navigation.navigation
+            [ Navigation.navLinkMsg "Dashboard" (SearchChanged "")
+                |> Navigation.withCurrentLink
+            , Navigation.navLinkMsg "Clusters" (SearchChanged "")
+            , Navigation.navLinkMsg "Deployments" (SearchChanged "")
+            , Navigation.navLinkMsg "Settings" (SearchChanged "")
+            ]
+            |> Navigation.toMarkup
+        , label "With expandable section"
+        , Navigation.navigation
+            [ Navigation.navLinkMsg "Dashboard" (SearchChanged "")
+                |> Navigation.withCurrentLink
+            , Navigation.navExpandable
+                { title = "Workloads"
+                , isExpanded = model.navExpandedSection
+                , onToggle = ToggleNavSection
+                }
+                [ Navigation.navLinkMsg "Pods" (SearchChanged "")
+                , Navigation.navLinkMsg "Deployments" (SearchChanged "")
+                , Navigation.navLinkMsg "StatefulSets" (SearchChanged "")
+                ]
+            , Navigation.navLinkMsg "Settings" (SearchChanged "")
+            ]
+            |> Navigation.withAriaLabel "Application"
+            |> Navigation.toMarkup
+        , label "With group headings"
+        , Navigation.navigation
+            [ Navigation.navGroup "Storage"
+                [ Navigation.navLinkMsg "Persistent Volumes" (SearchChanged "")
+                , Navigation.navLinkMsg "Storage Classes" (SearchChanged "")
+                ]
+            , Navigation.navGroup "Networking"
+                [ Navigation.navLinkMsg "Services" (SearchChanged "")
+                , Navigation.navLinkMsg "Ingresses" (SearchChanged "")
+                ]
+            ]
+            |> Navigation.toMarkup
+        ]
+
+
+
+-- PAGE
+
+
+viewPage : Model -> Html Msg
+viewPage model =
+    section "Page"
+        "Page composes a Masthead, Sidebar (with Navigation), and main content area into a full application layout."
+        [ label "Full page layout (sidebar toggle controls expansion)"
+        , div [ Attr.style "height" "300px", Attr.style "position" "relative", Attr.style "overflow" "hidden", Attr.style "border" "1px solid var(--pf-t--global--border--color--default)" ]
+            [ Page.page
+                [ Page.pageSection
+                    (div []
+                        [ Title.title "Page Demo"
+                            |> Title.withH2
+                            |> Title.toMarkup
+                        , p [] [ text "Sidebar is ", text (if model.sidebarExpanded then "expanded" else "collapsed"), text ". Click the hamburger in the masthead to toggle." ]
+                        ]
+                    )
+                ]
+                |> Page.withMasthead
+                    (Masthead.masthead
+                        |> Masthead.withToggle ToggleSidebar
+                        |> Masthead.withBrand
+                            (span [ Attr.style "padding" "0 1rem", Attr.style "font-weight" "700" ]
+                                [ text "My App" ]
+                            )
+                        |> Masthead.toMarkup
+                    )
+                |> Page.withSidebar
+                    (Navigation.navigation
+                        [ Navigation.navLinkMsg "Dashboard" (SearchChanged "")
+                            |> Navigation.withCurrentLink
+                        , Navigation.navLinkMsg "Clusters" (SearchChanged "")
+                        , Navigation.navLinkMsg "Settings" (SearchChanged "")
+                        ]
+                        |> Navigation.toMarkup
+                    )
+                |> Page.withSidebarExpanded model.sidebarExpanded
+                |> Page.toMarkup
+            ]
         ]

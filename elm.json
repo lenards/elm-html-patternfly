@@ -41,7 +41,10 @@
         "PF6.Select",
         "PF6.Switch",
         "PF6.TextArea",
-        "PF6.TextInput"
+        "PF6.TextInput",
+        "PF6.Masthead",
+        "PF6.Navigation",
+        "PF6.Page"
     ],
     "elm-version": "0.19.1 <= v < 0.20.0",
     "dependencies": {
