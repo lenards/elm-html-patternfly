@@ -55,11 +55,26 @@ main =
 
 
 
+-- SECTIONS
+
+
+type Section
+    = Home
+    | Primitives
+    | Feedback
+    | Layout
+    | Forms
+    | Content
+    | Chrome
+
+
+
 -- MODEL
 
 
 type alias Model =
-    { alertVisible : Bool
+    { currentSection : Section
+    , alertVisible : Bool
     , checkboxChecked : Bool
     , checkbox2Checked : Bool
     , labelVisible : Bool
@@ -79,7 +94,8 @@ type alias Model =
 
 init : Model
 init =
-    { alertVisible = True
+    { currentSection = Home
+    , alertVisible = True
     , checkboxChecked = False
     , checkbox2Checked = True
     , labelVisible = True
@@ -118,6 +134,7 @@ type Msg
     | NumberChanged Int
     | ToggleSidebar
     | ToggleNavSection
+    | NavSelected Section
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -171,6 +188,9 @@ update msg model =
         ToggleNavSection ->
             ( { model | navExpandedSection = not model.navExpandedSection }, Cmd.none )
 
+        NavSelected sec ->
+            ( { model | currentSection = sec }, Cmd.none )
+
 
 
 -- VIEW
@@ -178,83 +198,182 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ pageHeader
-        , div
-            [ Attr.style "padding" "2rem"
-            , Attr.style "max-width" "960px"
-            , Attr.style "margin" "0 auto"
-            ]
-                [ h1
-                    [ Attr.style "font-size" "2rem"
-                    , Attr.style "font-weight" "700"
-                    , Attr.style "margin-bottom" "0.5rem"
-                    ]
-                    [ text "elm-html-patternfly" ]
-                , p
-                    [ Attr.style "color" "var(--pf-t--global--text--color--subtle)"
-                    , Attr.style "margin-bottom" "2rem"
-                    ]
-                    [ text "PatternFly 6 components built with elm/html. 40 components — Batch 1, 2, 3 & 4." ]
-                , viewActionList
-                , viewAlert model
-                , viewAvatar
+    Page.page
+        [ Page.pageSection (sectionContent model) ]
+        |> Page.withMasthead (guidemasthead model)
+        |> Page.withSidebar (guideNav model)
+        |> Page.withSidebarExpanded model.sidebarExpanded
+        |> Page.toMarkup
+
+
+guidemasthead : Model -> Html Msg
+guidemasthead _ =
+    Masthead.masthead
+        |> Masthead.withToggle ToggleSidebar
+        |> Masthead.withBrand
+            (span
+                [ Attr.style "padding" "0 1.25rem"
+                , Attr.style "font-weight" "700"
+                , Attr.style "font-size" "1.125rem"
+                , Attr.style "color" "#fff"
+                ]
+                [ text "elm-html-patternfly" ]
+            )
+        |> Masthead.withToolbar
+            (span
+                [ Attr.style "padding" "0 1rem"
+                , Attr.style "font-size" "0.875rem"
+                , Attr.style "color" "rgba(255,255,255,0.7)"
+                ]
+                [ text "PF6 Component Guide" ]
+            )
+        |> Masthead.withAttributes
+            [ Attr.style "background-color" "#151515" ]
+        |> Masthead.toMarkup
+
+
+navItemFor : Model -> Section -> String -> Navigation.NavItem Msg
+navItemFor model sec navLabel =
+    Navigation.navLinkMsg navLabel (NavSelected sec)
+        |> (if model.currentSection == sec then
+                Navigation.withCurrentLink
+
+            else
+                identity
+           )
+
+
+guideNav : Model -> Html Msg
+guideNav model =
+    Navigation.navigation
+        [ navItemFor model Home "Home"
+        , navItemFor model Primitives "Primitives"
+        , navItemFor model Feedback "Feedback"
+        , navItemFor model Layout "Layout"
+        , navItemFor model Forms "Forms"
+        , navItemFor model Content "Content"
+        , navItemFor model Chrome "Chrome"
+        ]
+        |> Navigation.withAriaLabel "Guide navigation"
+        |> Navigation.toMarkup
+
+
+sectionContent : Model -> Html Msg
+sectionContent model =
+    div
+        [ Attr.style "padding" "2rem"
+        , Attr.style "max-width" "960px"
+        ]
+        (case model.currentSection of
+            Home ->
+                [ viewHome ]
+
+            Primitives ->
+                [ viewAvatar
                 , viewBadge model
-                , viewBanner
-                , viewBreadcrumb
-                , viewBullseye
                 , viewButton
-                , viewCard
-                , viewCheckbox model
-                , viewCodeBlock
-                , viewDescriptionList
                 , viewDivider
+                , viewIcon
+                , viewLabel model
+                , viewSpinner
+                , viewTitle
+                ]
+
+            Feedback ->
+                [ viewAlert model
+                , viewBanner
                 , viewEmptyState
-                , viewExpandableSection model
+                , viewHelperText
+                , viewHint
+                , viewProgress
+                ]
+
+            Layout ->
+                [ viewBullseye
                 , viewFlex
                 , viewGallery
                 , viewGrid
-                , viewHelperText
-                , viewHint
-                , viewIcon
-                , viewLabel model
                 , viewLevel
-                , viewList
-                , viewMasthead model
-                , viewNavigation model
+                , viewSplit
+                , viewStack
+                ]
+
+            Forms ->
+                [ viewCheckbox model
                 , viewNumberInput model
-                , viewPage model
-                , viewProgress
                 , viewRadio model
                 , viewSearchInput model
                 , viewSelect model
-                , viewSpinner
-                , viewSplit
-                , viewStack
                 , viewSwitch model
                 , viewTextArea model
                 , viewTextInput model
-                , viewTitle
                 ]
-        ]
+
+            Content ->
+                [ viewActionList
+                , viewBreadcrumb
+                , viewCard
+                , viewCodeBlock
+                , viewDescriptionList
+                , viewExpandableSection model
+                , viewList
+                ]
+
+            Chrome ->
+                [ viewMasthead model
+                , viewNavigation model
+                , viewPage model
+                ]
+        )
 
 
-pageHeader : Html Msg
-pageHeader =
-    div
-        [ Attr.class "pf-v6-c-masthead"
-        , Attr.style "background-color" "var(--pf-t--global--background--color--primary--default)"
-        ]
-        [ div [ Attr.class "pf-v6-c-masthead__main" ]
-            [ span
-                [ Attr.style "color" "var(--pf-t--global--text--color--on-dark--regular, #fff)"
-                , Attr.style "font-weight" "700"
-                , Attr.style "font-size" "1.125rem"
-                , Attr.style "padding" "0.75rem 1rem"
-                , Attr.style "display" "block"
-                ]
-                [ text "PF6 Component Guide" ]
+viewHome : Html Msg
+viewHome =
+    div []
+        [ h1
+            [ Attr.style "font-size" "2rem"
+            , Attr.style "font-weight" "700"
+            , Attr.style "margin-bottom" "0.5rem"
             ]
+            [ text "elm-html-patternfly" ]
+        , p
+            [ Attr.style "color" "var(--pf-t--global--text--color--subtle)"
+            , Attr.style "margin-bottom" "2rem"
+            ]
+            [ text "PatternFly 6 components built with elm/html. 40 modules." ]
+        , p
+            [ Attr.style "margin-bottom" "1rem" ]
+            [ text "Use the sidebar to browse component demos grouped by category:" ]
+        , div [ Attr.style "display" "flex", Attr.style "flex-direction" "column", Attr.style "gap" "0.5rem" ]
+            [ homeSectionLink "Primitives" "Button, Badge, Label, Icon, Avatar, Spinner, Divider, Title"
+            , homeSectionLink "Feedback" "Alert, Banner, EmptyState, HelperText, Hint, Progress"
+            , homeSectionLink "Layout" "Bullseye, Flex, Gallery, Grid, Level, Split, Stack"
+            , homeSectionLink "Forms" "Checkbox, NumberInput, Radio, SearchInput, Select, Switch, TextArea, TextInput"
+            , homeSectionLink "Content" "ActionList, Breadcrumb, Card, CodeBlock, DescriptionList, ExpandableSection, List"
+            , homeSectionLink "Chrome" "Masthead, Navigation, Page"
+            ]
+        ]
+
+
+homeSectionLink : String -> String -> Html Msg
+homeSectionLink sectionName components =
+    div
+        [ Attr.style "padding" "1rem"
+        , Attr.style "border" "1px solid var(--pf-t--global--border--color--default)"
+        , Attr.style "border-radius" "4px"
+        ]
+        [ h2
+            [ Attr.style "font-size" "1rem"
+            , Attr.style "font-weight" "600"
+            , Attr.style "margin-bottom" "0.25rem"
+            ]
+            [ text sectionName ]
+        , p
+            [ Attr.style "font-size" "0.875rem"
+            , Attr.style "color" "var(--pf-t--global--text--color--subtle)"
+            , Attr.style "margin" "0"
+            ]
+            [ text components ]
         ]
 
 

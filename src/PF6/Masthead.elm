@@ -120,6 +120,7 @@ toMarkup (Masthead opts) =
                             [ Attr.class "pf-v6-c-button pf-m-plain"
                             , Attr.type_ "button"
                             , Attr.attribute "aria-label" "Global navigation"
+                            , Attr.style "color" "inherit"
                             , Events.onClick msg
                             ]
                             [ Html.i
